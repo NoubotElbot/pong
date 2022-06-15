@@ -6,8 +6,8 @@ class Scene_play extends Phaser.Scene {
     }
 
     create() {
-        let center_width = this.sys.game.config.width / 2;
-        let center_height = this.sys.game.config.height / 2;
+        let center_width = this.scale.width / 2;
+        let center_height = this.scale.height / 2;
 
         // Separador
         this.add.image(center_width, center_height, 'separador');
@@ -15,13 +15,14 @@ class Scene_play extends Phaser.Scene {
         // Tabla de marcadores
         this.marcador_izq = 0;
         this.marcador_der = 0;
-        this.marcador_izq_text = this.add.text(center_width - 50, 20, this.marcador_izq, {
+        this.marcador_izq_text = this.add.text(this.scale.width * 0.25, 20, this.marcador_izq, {
             fontSize: "32px",
             fill: "#fff"
         });
-        this.marcador_der_text = this.add.text(center_width + 30, 20, this.marcador_der, {
+        this.marcador_der_text = this.add.text(this.scale.width * 0.75, 20, this.marcador_der, {
             fontSize: "32px",
-            fill: "#fff"
+            fill: "#fff",
+            align: "left"
         });
 
         // Palas
@@ -33,7 +34,10 @@ class Scene_play extends Phaser.Scene {
         this.ball = this.physics.add.image(center_width, center_height, 'ball');
         this.ball.setCollideWorldBounds(true);
         this.ball.setBounce(1);
-        this.ball.setVelocityX(-180);
+        this.stop_right = false;
+        this.stop_left = false;
+        this.ball_stop = false;
+        this.ball.setVelocityX([-180, 180][Phaser.Math.Between(0, 1)]);
 
         // Fisicas
         this.physics.add.collider(this.ball, this.izquierda, this.chocaPala, null, this);
@@ -46,28 +50,53 @@ class Scene_play extends Phaser.Scene {
         // Pala izquierda
         this.cursor_W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.cursor_S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+
+        this.lanzar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     }
 
     update() {
         this.puntos();
-
         // Control de las palas
         // Pala derecha
         if (this.cursor.down.isDown) {
             this.derecha.body.setVelocityY(300);
+            if (this.ball_stop && this.stop_right) {
+                this.ball.setVelocityY(300);
+            }
         } else if (this.cursor.up.isDown) {
             this.derecha.body.setVelocityY(-300);
+            if (this.ball_stop && this.stop_right) {
+                this.ball.setVelocityY(-300);
+            }
         } else {
             this.derecha.body.setVelocityY(0);
+            if (this.ball_stop && this.stop_right) {
+                this.ball.setVelocityY(0);
+            }
         }
 
         // Pala izquierda
         if (this.cursor_S.isDown) {
             this.izquierda.body.setVelocityY(300);
+            if (this.ball_stop && this.stop_left) {
+                this.ball.setVelocityY(300);
+            }
         } else if (this.cursor_W.isDown) {
             this.izquierda.body.setVelocityY(-300);
+            if (this.ball_stop && this.stop_left) {
+                this.ball.setVelocityY(-300);
+            }
         } else {
             this.izquierda.body.setVelocityY(0);
+            if (this.ball_stop && this.stop_left) {
+                this.ball.setVelocityY(0);
+            }
+        }
+
+        if (this.lanzar.isDown && this.ball_stop) {
+            this.ball_stop = false;
+            this.ball.setVelocityX(this.stop_left ? 180 : -180);
+            this.ball.setVelocityY(Phaser.Math.Between(-120, 120));
         }
     }
 
@@ -76,25 +105,33 @@ class Scene_play extends Phaser.Scene {
             this.marcador_der ++;
             this.marcador_der_text.setText(this.marcador_der);
             this.resetPosition();
-            this.ball.setPosition(this.scale.width - 30, this.scale.height/2);
+            this.ball.setPosition(this.scale.width - 40, this.scale.height / 2);
+            this.stop_left = false;
+            this.stop_right = true;
         }
 
-        if (this.ball.x > this.sys.game.config.width) {
+        if (this.ball.x > this.scale.width) {
             this.marcador_izq ++;
             this.marcador_izq_text.setText(this.marcador_izq);
             this.resetPosition();
-            this.ball.setPosition(30, this.scale.height/2);
+            this.ball.setPosition(40, this.scale.height / 2);
+            this.stop_right = false;
+            this.stop_left = true;
         }
     }
 
     resetPosition() {
-        console.log('reset');
-        this.izquierda.setPosition(30, this.scale.height/2);
-        this.derecha.setPosition(this.scale.width - 30, this.scale.height/2);
+        this.izquierda.setPosition(30, this.scale.height / 2);
+        this.derecha.setPosition(this.scale.width - 30, this.scale.height / 2);
+        this.ball.setVelocityX(0);
+        this.ball.setVelocityY(0);
+        this.ball_stop = true;
     }
 
     chocaPala() {
         this.ball.setVelocityY(Phaser.Math.Between(-120, 120));
     }
+
+
 }
 export default Scene_play;
