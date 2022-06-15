@@ -6,4 +6,4 @@
 npm install
 ```
 
-Open `index.html` in your browser or use Live Server extension in Visual Code
+Use Live Server extension in Visual Code
