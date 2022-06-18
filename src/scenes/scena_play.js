@@ -1,8 +1,11 @@
 import Palas from "../gameObjects/palas.js";
-
 class Scene_play extends Phaser.Scene {
     constructor(params) {
-        super({key: 'Scene_play'});
+        super({ key: 'Scene_play' });
+
+        this.velocity_move = 400;
+        this.velocity_ball = 200;
+
     }
 
     create() {
@@ -37,7 +40,7 @@ class Scene_play extends Phaser.Scene {
         this.stop_right = false;
         this.stop_left = false;
         this.ball_stop = false;
-        this.ball.setVelocityX([-180, 180][Phaser.Math.Between(0, 1)]);
+        this.ball.setVelocityX([-this.velocity_ball, this.velocity_ball][Phaser.Math.Between(0, 1)]);
 
         // Fisicas
         this.physics.add.collider(this.ball, this.izquierda, this.chocaPala, null, this);
@@ -51,7 +54,7 @@ class Scene_play extends Phaser.Scene {
         this.cursor_W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
         this.cursor_S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
 
-        this.lanzar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     }
 
     update() {
@@ -59,14 +62,14 @@ class Scene_play extends Phaser.Scene {
         // Control de las palas
         // Pala derecha
         if (this.cursor.down.isDown) {
-            this.derecha.body.setVelocityY(300);
+            this.derecha.body.setVelocityY(this.velocity_move);
             if (this.ball_stop && this.stop_right) {
-                this.ball.setVelocityY(300);
+                this.ball.setVelocityY(this.velocity_move);
             }
         } else if (this.cursor.up.isDown) {
-            this.derecha.body.setVelocityY(-300);
+            this.derecha.body.setVelocityY(-this.velocity_move);
             if (this.ball_stop && this.stop_right) {
-                this.ball.setVelocityY(-300);
+                this.ball.setVelocityY(-this.velocity_move);
             }
         } else {
             this.derecha.body.setVelocityY(0);
@@ -77,14 +80,14 @@ class Scene_play extends Phaser.Scene {
 
         // Pala izquierda
         if (this.cursor_S.isDown) {
-            this.izquierda.body.setVelocityY(300);
+            this.izquierda.body.setVelocityY(this.velocity_move);
             if (this.ball_stop && this.stop_left) {
-                this.ball.setVelocityY(300);
+                this.ball.setVelocityY(this.velocity_move);
             }
         } else if (this.cursor_W.isDown) {
-            this.izquierda.body.setVelocityY(-300);
+            this.izquierda.body.setVelocityY(-this.velocity_move);
             if (this.ball_stop && this.stop_left) {
-                this.ball.setVelocityY(-300);
+                this.ball.setVelocityY(-this.velocity_move);
             }
         } else {
             this.izquierda.body.setVelocityY(0);
@@ -93,30 +96,34 @@ class Scene_play extends Phaser.Scene {
             }
         }
 
-        if (this.lanzar.isDown && this.ball_stop) {
+        this.lanzar();
+    }
+
+    lanzar() {
+        if (this.space.isDown && this.ball_stop) {
             this.ball_stop = false;
-            this.ball.setVelocityX(this.stop_left ? 180 : -180);
+            this.ball.setVelocityX(this.stop_left ? this.velocity_ball : -this.velocity_ball);
             this.ball.setVelocityY(Phaser.Math.Between(-120, 120));
         }
     }
 
     puntos() {
         if (this.ball.x < 0) {
-            this.marcador_der ++;
+            this.marcador_der++;
             this.marcador_der_text.setText(this.marcador_der);
             this.resetPosition();
-            this.ball.setPosition(this.scale.width - 40, this.scale.height / 2);
-            this.stop_left = false;
-            this.stop_right = true;
+            this.ball.setPosition(this.izquierda.x + 10, this.scale.height / 2);
+            this.stop_left = true;
+            this.stop_right = false;
         }
 
         if (this.ball.x > this.scale.width) {
-            this.marcador_izq ++;
+            this.marcador_izq++;
             this.marcador_izq_text.setText(this.marcador_izq);
             this.resetPosition();
-            this.ball.setPosition(40, this.scale.height / 2);
-            this.stop_right = false;
-            this.stop_left = true;
+            this.ball.setPosition(this.derecha.x - 10, this.scale.height / 2);
+            this.stop_right = true;
+            this.stop_left = false;
         }
     }
 
@@ -131,7 +138,5 @@ class Scene_play extends Phaser.Scene {
     chocaPala() {
         this.ball.setVelocityY(Phaser.Math.Between(-120, 120));
     }
-
-
 }
 export default Scene_play;

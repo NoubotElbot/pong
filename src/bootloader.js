@@ -1,3 +1,4 @@
+import Phaser from "phaser";
 class Bootloader extends Phaser.Scene {
     constructor() {
         super({key: "Bootloader"});
